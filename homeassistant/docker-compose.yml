@@ -1,0 +1,12 @@
+version: "3.6"
+
+services:
+  homeassistant:
+    container_name: "homeassistant"
+    hostname: "luna"
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    network_mode: "host"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/homeassistant:/config"
+      - "/etc/localtime:/etc/localtime:ro"

@@ -1,0 +1,18 @@
+version: "3.6"
+
+networks:
+  gateway:
+    external: true
+    name: "gateway"
+
+services:
+  uptime-kuma:
+    container_name: "uptime-kuma"
+    hostname: "uptime-kuma"
+    image: "louislam/uptime-kuma:latest"
+    networks:
+      - "gateway"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/uptime-kuma/data:/app/data"
+

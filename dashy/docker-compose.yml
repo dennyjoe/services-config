@@ -1,0 +1,19 @@
+version: "3.6"
+
+networks:
+  gateway:
+    external: true
+    name: "gateway"
+
+services:
+  Dashy:
+    container_name: "Dashy"
+    image: "lissy93/dashy"
+    environment:
+      - "NODE_ENV=production"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/dashy/config.yml:/app/public/conf.yml"
+      - "/etc/dashy/icons:/app/public/item-icons"
+    networks:
+      - "gateway"      

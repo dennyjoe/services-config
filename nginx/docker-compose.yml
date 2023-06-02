@@ -1,0 +1,45 @@
+version: "3.6"
+
+networks:
+  frontend:
+    name: gateway
+    external: true
+  backend:
+
+services:
+  nginx_app_1:
+    container_name: "nginx_app_1"
+    image: "jc21/nginx-proxy-manager:latest"
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    environment:
+      - "DB_MYSQL_PORT=3306"
+      - "DB_MYSQL_USER=changeme"
+      - "DB_MYSQL_PASSWORD=changeme"
+      - "DB_MYSQL_NAME=npm"
+      - "DB_MYSQL_HOST=nginx_db_1"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/nginx/data:/data"
+      - "/etc/nginx/letsencrypt:/etc/letsencrypt"
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - nginx_db_1 
+
+  nginx_db_1:
+    container_name: "nginx_db_1"
+    image: "jc21/mariadb-aria:latest"
+    environment:
+      - "MYSQL_DATABASE=npm"
+      - "MYSQL_USER=changeme"
+      - "MYSQL_PASSWORD=changeme"
+      - "MYSQL_ROOT_PASSWORD=changeme"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/nginx/db:/var/lib/mysql"
+    networks:
+      - backend      

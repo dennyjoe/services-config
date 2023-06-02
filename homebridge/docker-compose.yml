@@ -1,0 +1,12 @@
+version: "3.6"
+
+services:
+  homebridge-homebridge-1:
+    container_name: "homebridge-homebridge-1"
+    hostname: "luna"
+    image: "oznu/homebridge:latest"
+    network_mode: "host"
+    restart: "unless-stopped"
+    volumes:
+      - "/data/compose/22/volumes/homebridge:/homebridge"
+

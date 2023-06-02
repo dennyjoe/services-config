@@ -1,0 +1,20 @@
+version: "3.6"
+
+services:
+  pialert:
+    container_name: "pialert"
+    environment:
+      - "HOST_USER_ID=1000"
+      - "HOST_USER_GID=1000"
+      - "TZ=Europe/London"
+      - "PORT=20211"
+      - "USER=pi"
+      - "USER_ID=1000"
+      - "USER_GID=1000"
+    hostname: "metis"
+    image: "jokobsk/pi.alert:latest"
+    network_mode: "host"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/pialert/config:/home/pi/pialert/config"
+      - "/etc/pialert/db/pialert.db:/home/pi/pialert/db/pialert.db"
