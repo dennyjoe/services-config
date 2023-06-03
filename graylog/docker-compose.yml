@@ -1,0 +1,88 @@
+version: "3.8"
+
+networks:
+  gateway:
+    external: true
+    name: "gateway"
+
+services:
+  mongodb:
+    container_name: "mongodb"
+    image: "mongo:5.0"
+    labels:
+      com.centurylinklabs.watchtower.monitor-only: "true"
+    volumes:
+      - "mongodb_data:/data/db"
+    networks:
+      - "gateway"
+    restart: "on-failure"
+
+  opensearch:
+    container_name: "opensearch"
+    image: "opensearchproject/opensearch:2.4.0"
+    environment:
+      - "discovery.type=single-node"
+      - "action.auto_create_index=false"
+      - "plugins.security.ssl.http.enabled=false"
+      - "plugins.security.disabled=true"
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "bootstrap.memory_lock=true"
+    labels:
+      com.centurylinklabs.watchtower.monitor-only: "true"
+    ulimits:
+      memlock:
+        hard: -1
+        soft: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - "os_data:/usr/share/opensearch/data"
+    networks:
+      - "gateway"
+    restart: "on-failure"      
+
+  graylog:
+    hostname: "server"
+    container_name: "graylog"
+    image: "graylog/graylog:5.1"   
+    entrypoint:
+      - "/usr/bin/tini"
+      - "--"
+      - "wait-for-it"
+      - "opensearch:9200"
+      - "--"
+      - "/docker-entrypoint.sh"
+    environment:
+      - "GRAYLOG_ROOT_PASSWORD_SHA2=$GRAYLOG_ROOT_PASSWORD_SHA2"
+      - "GRAYLOG_HTTP_BIND_ADDRESS=0.0.0.0:9000"
+      - "GRAYLOG_HTTP_EXTERNAL_URI=http://localhost:9000/"
+      - "GRAYLOG_ELASTICSEARCH_HOSTS=http://opensearch:9200"
+      - "GRAYLOG_MONGODB_URI=mongodb://mongodb:27017/graylog"
+      - "GRAYLOG_NODE_ID_FILE=/usr/share/graylog/data/config/node-id"
+      - "GRAYLOG_PASSWORD_SECRET=$GRAYLOG_PASSWORD_SECRET"
+    labels:
+      com.centurylinklabs.watchtower.monitor-only: "true"
+    ports:
+      - "1514:1514/udp"
+      - "2514:2514/udp"
+      - "5140:5140/udp"
+      - "6514:6514/udp"
+      - "8514:8514/udp"
+    volumes:
+      - "graylog_data:/usr/share/graylog/data/data"
+      - "graylog_journal:/usr/share/graylog/data/journal"
+    networks:
+      - "gateway"   
+    restart: "on-failure"         
+    depends_on:
+      opensearch:
+        condition: "service_started"
+      mongodb:
+        condition: "service_started"       
+
+volumes:
+  graylog_data:
+  graylog_journal:
+  mongodb_data:
+  os_data:

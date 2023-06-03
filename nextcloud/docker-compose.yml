@@ -1,0 +1,71 @@
+version: "3.6"
+
+networks:
+  nextcloud_backend:
+    name: "nextcloud_backend"
+  gateway:
+    external: true
+    name: "gateway"
+
+services:
+  nextcloud-app:
+    container_name: "nextcloud-app"
+    environment:
+      - "MYSQL_PASSWORD=$MYSQL_PASSWORD"
+      - "MYSQL_DATABASE=nextcloud"
+      - "MYSQL_USER=nextcloud"
+      - "MYSQL_HOST=nextcloud-db"
+    image: "nextcloud:latest"
+    networks:
+      - "gateway"
+      - "nextcloud_backend"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/nextcloud/data:/var/www/html:z"
+      - "/etc/nextcloud/apache:/etc/apache2"
+    depends_on:
+      - "nextcloud-db"
+
+  nextcloud-cron:
+    container_name: "nextcloud-cron"
+    environment:
+      - "MYSQL_PASSWORD=$MYSQL_PASSWORD"
+      - "MYSQL_DATABASE=nextcloud"
+      - "MYSQL_USER=nextcloud"
+      - "MYSQL_HOST=nextcloud-db"
+    image: "nextcloud:latest"
+    networks:
+      - "gateway"
+      - "nextcloud_backend"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/nextcloud/data:/var/www/html:z"
+    depends_on:
+      - "nextcloud-app"
+
+  nextcloud-db:
+    container_name: "nextcloud-db"
+    environment:
+      - "MYSQL_DATABASE=nextcloud"
+      - "MYSQL_USER=nextcloud"
+      - "MYSQL_ROOT_PASSWORD=$MYSQL_PASSWORD"
+      - "MYSQL_PASSWORD=$MYSQL_PASSWORD"
+    image: "mariadb:latest"
+    networks:
+      - "nextcloud_backend"
+    restart: "unless-stopped"
+    volumes:
+      - "/etc/nextcloud/db:/var/lib/mysql"
+
+  cloudflared-tunnel:
+    container_name: "cloudflared-tunnel"
+    environment:
+      - "TUNNEL_TOKEN=$TUNNEL_TOKEN"
+      - "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt"
+    image: "cloudflare/cloudflared:latest"
+    command: "tunnel run"
+    networks:
+      - "gateway"
+    restart: "unless-stopped"      
+
+
