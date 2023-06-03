@@ -28,12 +28,13 @@ services:
 
   nextcloud-cron:
     container_name: "nextcloud-cron"
+    image: "nextcloud:latest"
+    entrypoint: "/cron.sh"
     environment:
       - "MYSQL_PASSWORD=$MYSQL_PASSWORD"
       - "MYSQL_DATABASE=nextcloud"
       - "MYSQL_USER=nextcloud"
-      - "MYSQL_HOST=nextcloud-db"
-    image: "nextcloud:latest"
+      - "MYSQL_HOST=nextcloud-db"    
     networks:
       - "gateway"
       - "nextcloud_backend"
@@ -41,7 +42,8 @@ services:
     volumes:
       - "/etc/nextcloud/data:/var/www/html:z"
     depends_on:
-      - "nextcloud-app"
+
+      - "nextcloud-db"
 
   nextcloud-db:
     container_name: "nextcloud-db"
@@ -61,11 +63,9 @@ services:
     container_name: "cloudflared-tunnel"
     environment:
       - "TUNNEL_TOKEN=$TUNNEL_TOKEN"
-      - "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt"
+
     image: "cloudflare/cloudflared:latest"
     command: "tunnel run"
     networks:
       - "gateway"
     restart: "unless-stopped"      
-
-

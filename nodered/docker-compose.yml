@@ -1,0 +1,23 @@
+version: "3.6"
+
+networks:
+  gateway:
+    external: true
+    name: "gateway"
+
+volumes:
+  node-red-data:
+
+services:
+  node-red:
+    container_name: "node-red"
+    image: "nodered/node-red:latest"
+    environment:
+      - "TZ=Europe/London"
+    networks:
+      - "gateway"
+    restart: "unless-stopped"
+    volumes:
+      - "node-red-data:/data"
+
+
