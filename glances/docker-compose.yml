@@ -1,0 +1,21 @@
+version: "3.5"
+
+networks:
+  gateway:
+    external: true
+    name: "gateway"
+
+services:
+  glances:
+    container_name: glances
+    image: joweisberg/glances:latest
+    restart: unless-stopped
+    pid: host
+    networks:
+      - "gateway"    
+    environment:
+      - TZ=Europe/London
+      - GLANCES_OPT=--webserver
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/docker/glances:/glances/conf
